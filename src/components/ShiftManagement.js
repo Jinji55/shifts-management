@@ -33,6 +33,13 @@ const ShiftManagement = () => {
    });
  };
 
+ const soldiers = [
+   'בנימין פזמנטר', 'סלומון סינגסון', 'ינון גונן', 'אורן טביב', 'יעקב סביליה', 
+   'יאיר תדמור', 'משה בר יוסף', 'יהודה ביתן', 'נתנאל אלמליח', 'דן טהומטה',
+   'שלומי כהן', 'דביר לרנר', 'דוד פאסי', 'חגי קאופמן', 'אלי סעדיה',
+   'חיים פרידמן', 'שי שמואל', 'ברוך שיינדמן'
+ ].sort((a, b) => a.localeCompare(b, 'he'));
+
  const [shifts, setShifts] = useState({
    'שג מערבי': {
      peoplePerShift: 1,
@@ -92,13 +99,6 @@ const ShiftManagement = () => {
    }
  });
 
- const soldiers = [
-   'בנימין פזמנטר', 'סלומון סינגסון', 'ינון גונן', 'אורן טביב', 'יעקב סביליה', 
-   'יאיר תדמור', 'משה בר יוסף', 'יהודה ביתן', 'נתנאל אלמליח', 'דן טהומטה',
-   'שלומי כהן', 'דביר לרנר', 'דוד פאסי', 'חגי קאופמן', 'אלי סעדיה',
-   'חיים פרידמן', 'שי שמואל', 'ברוך שיינדמן'
- ];
-
  const handleAssignmentChange = (position, date, hours, soldierIndex, newSoldier) => {
    setShifts(prev => {
      const newShifts = { ...prev };
@@ -110,20 +110,20 @@ const ShiftManagement = () => {
  };
 
  const EditableCell = ({ position, date, hours, assignments }) => (
-   <div className="space-y-2 bg-white">
+   <div className="space-y-2">
      {Array.from({ length: shifts[position].peoplePerShift }).map((_, index) => (
        <Select
          key={index}
          value={assignments[index] || NOT_ASSIGNED}
          onValueChange={(value) => handleAssignmentChange(position, date, hours, index, value)}
        >
-         <SelectTrigger className="w-full">
+         <SelectTrigger className="w-full bg-white">
            <SelectValue placeholder="בחר חייל" />
          </SelectTrigger>
-         <SelectContent className="bg-white">
-           <SelectItem value={NOT_ASSIGNED}>לא משובץ</SelectItem>
+         <SelectContent className="bg-white shadow-lg border-gray-200">
+           <SelectItem value={NOT_ASSIGNED} className="bg-white hover:bg-gray-100">לא משובץ</SelectItem>
            {soldiers.map(soldier => (
-             <SelectItem key={soldier} value={soldier}>
+             <SelectItem key={soldier} value={soldier} className="bg-white hover:bg-gray-100">
                {soldier}
              </SelectItem>
            ))}
@@ -143,12 +143,12 @@ const ShiftManagement = () => {
            value={selectedDate.toISOString()} 
            onValueChange={(value) => setSelectedDate(new Date(value))}
          >
-           <SelectTrigger className="w-48">
+           <SelectTrigger className="w-48 bg-white">
              <SelectValue>{formatDate(selectedDate)}</SelectValue>
            </SelectTrigger>
-           <SelectContent>
+           <SelectContent className="bg-white shadow-lg border-gray-200">
              {weekDates.map((date) => (
-               <SelectItem key={date.toISOString()} value={date.toISOString()}>
+               <SelectItem key={date.toISOString()} value={date.toISOString()} className="bg-white hover:bg-gray-100">
                  {formatDate(date)}
                </SelectItem>
              ))}
