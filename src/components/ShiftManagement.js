@@ -1,10 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Edit2, Save } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ShiftManagement = () => {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -53,7 +52,74 @@ const ShiftManagement = () => {
     !searchQuery || soldier.startsWith(searchQuery)
   );
 
-  // ... rest of your state and shifts code remains the same ...
+  const [shifts, setShifts] = useState({
+    'שג מערבי': {
+      peoplePerShift: 1,
+      shiftHours: ['08:00-12:00', '12:00-16:00', '16:00-20:00', '20:00-00:00', '00:00-04:00', '04:00-08:00'],
+      assignments: weekDates.reduce((acc, date) => ({
+        ...acc,
+        [date.toISOString()]: {
+          '08:00-12:00': ['בנימין פזמנטר'],
+          '12:00-16:00': ['סלומון סינגסון'],
+          '16:00-20:00': ['ינון גונן'],
+          '20:00-00:00': ['אורן טביב'],
+          '00:00-04:00': ['יעקב סביליה'],
+          '04:00-08:00': ['יאיר תדמור']
+        }
+      }), {})
+    },
+    'גל': {
+      peoplePerShift: 2,
+      shiftHours: ['08:00-12:00', '12:00-16:00', '16:00-20:00', '20:00-00:00', '00:00-04:00', '04:00-08:00'],
+      assignments: weekDates.reduce((acc, date) => ({
+        ...acc,
+        [date.toISOString()]: {
+          '08:00-12:00': ['משה בר יוסף', 'יהודה ביתן'],
+          '12:00-16:00': ['נתנאל אלמליח', 'דן טהומטה'],
+          '16:00-20:00': ['שלומי כהן', 'דביר לרנר'],
+          '20:00-00:00': [NOT_ASSIGNED, NOT_ASSIGNED],
+          '00:00-04:00': ['דוד פאסי', NOT_ASSIGNED],
+          '04:00-08:00': [NOT_ASSIGNED, NOT_ASSIGNED]
+        }
+      }), {})
+    },
+    'פטרול': {
+      peoplePerShift: 2,
+      shiftHours: ['04:30-08:00', '17:00-21:00'],
+      assignments: weekDates.reduce((acc, date) => ({
+        ...acc,
+        [date.toISOString()]: {
+          '04:30-08:00': ['יהודה ביתן', 'חגי קאופמן'],
+          '17:00-21:00': ['ברוך שיינדמן', 'חיים פרידמן']
+        }
+      }), {})
+    },
+    'אליאס': {
+      peoplePerShift: 1,
+      shiftHours: ['06:00-10:00', '10:00-14:00', '14:00-18:00', '18:00-22:00', '22:00-02:00', '02:00-06:00'],
+      assignments: weekDates.reduce((acc, date) => ({
+        ...acc,
+        [date.toISOString()]: {
+          '06:00-10:00': ['חגי קאופמן'],
+          '10:00-14:00': ['אלי סעדיה'],
+          '14:00-18:00': ['דביר לרנר'],
+          '18:00-22:00': ['חיים פרידמן'],
+          '22:00-02:00': ['שי שמואל'],
+          '02:00-06:00': ['יהודה ביתן']
+        }
+      }), {})
+    }
+  });
+
+  const handleAssignmentChange = (position, date, hours, soldierIndex, newSoldier) => {
+    setShifts(prev => {
+      const newShifts = { ...prev };
+      const assignments = [...newShifts[position].assignments[date][hours]];
+      assignments[soldierIndex] = newSoldier;
+      newShifts[position].assignments[date][hours] = assignments;
+      return newShifts;
+    });
+  };
 
   const EditableCell = ({ position, date, hours, assignments }) => (
     <div className="space-y-2">
@@ -68,19 +134,17 @@ const ShiftManagement = () => {
             <SelectValue placeholder="בחר חייל" />
           </SelectTrigger>
           <SelectContent 
-            className="bg-white shadow-lg border-gray-200"
+            className="bg-white shadow-lg border-gray-200 max-h-[200px] overflow-y-auto"
             onKeyDown={(e) => handleKeyPress(e, setSearchQuery)}
           >
-            <ScrollArea className="h-[200px]">
-              <SelectItem value={NOT_ASSIGNED} className="bg-white hover:bg-gray-100">
-                לא משובץ
+            <SelectItem value={NOT_ASSIGNED} className="bg-white hover:bg-gray-100">
+              לא משובץ
+            </SelectItem>
+            {filteredSoldiers.map(soldier => (
+              <SelectItem key={soldier} value={soldier} className="bg-white hover:bg-gray-100">
+                {soldier}
               </SelectItem>
-              {filteredSoldiers.map(soldier => (
-                <SelectItem key={soldier} value={soldier} className="bg-white hover:bg-gray-100">
-                  {soldier}
-                </SelectItem>
-              ))}
-            </ScrollArea>
+            ))}
           </SelectContent>
         </Select>
       ))}
@@ -100,19 +164,84 @@ const ShiftManagement = () => {
             <SelectTrigger className="w-48 bg-white">
               <SelectValue>{formatDate(selectedDate)}</SelectValue>
             </SelectTrigger>
-            <SelectContent className="bg-white shadow-lg border-gray-200">
-              <ScrollArea className="h-[200px]">
-                {weekDates.map((date) => (
-                  <SelectItem key={date.toISOString()} value={date.toISOString()} className="bg-white hover:bg-gray-100">
-                    {formatDate(date)}
-                  </SelectItem>
-                ))}
-              </ScrollArea>
+            <SelectContent className="bg-white shadow-lg border-gray-200 max-h-[200px] overflow-y-auto">
+              {weekDates.map((date) => (
+                <SelectItem key={date.toISOString()} value={date.toISOString()} className="bg-white hover:bg-gray-100">
+                  {formatDate(date)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+        <Button
+          variant={isEditMode ? "destructive" : "default"}
+          onClick={() => setIsEditMode(!isEditMode)}
+        >
+          {isEditMode ? (
+            <>
+              <Save className="ml-2 h-4 w-4" />
+              שמור שינויים
+            </>
+          ) : (
+            <>
+              <Edit2 className="ml-2 h-4 w-4" />
+              ערוך שיבוץ
+            </>
+          )}
+        </Button>
+      </div>
 
-        {/* ... rest of your UI code remains the same ... */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Object.entries(shifts).map(([position, data]) => (
+          <Card key={position} className="w-full">
+            <CardHeader>
+              <CardTitle className="text-right">
+                <span>
+                  {position}
+                  <span className="text-sm font-normal mr-2">
+                    ({data.peoplePerShift} {data.peoplePerShift === 1 ? 'חייל' : 'חיילים'} למשמרת)
+                  </span>
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="text-right p-2">שעות</th>
+                    <th className="text-right p-2">חיילים</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.shiftHours.map(hours => (
+                    <tr key={hours} className="hover:bg-gray-50">
+                      <td className="p-2 border">{hours}</td>
+                      <td className="p-2 border">
+                        {isEditMode ? (
+                          <EditableCell 
+                            position={position}
+                            date={selectedDate.toISOString()}
+                            hours={hours}
+                            assignments={data.assignments[selectedDate.toISOString()][hours]}
+                          />
+                        ) : (
+                          data.assignments[selectedDate.toISOString()][hours]?.map((soldier, i) => (
+                            <div 
+                              key={i} 
+                              className={`${soldier === NOT_ASSIGNED ? 'text-red-500' : ''} ${i > 0 ? 'mt-1' : ''}`}
+                            >
+                              {soldier === NOT_ASSIGNED ? 'לא משובץ' : soldier}
+                            </div>
+                          ))
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
