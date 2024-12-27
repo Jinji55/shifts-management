@@ -1,0 +1,43 @@
+.custom-select-content {
+  max-height: 300px !important;
+  overflow-y: scroll !important;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+.custom-select-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-select-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.custom-select-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.custom-select-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.select-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.select-item[data-highlighted="true"] {
+  background-color: #e5e7eb;
+}
+
+.select-item:hover {
+  background-color: #f3f4f6;
+}
+
+.select-item[data-state="active"] {
+  background-color: #dbeafe;
+  font-weight: 500;
+}
