@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Edit2, Save } from 'lucide-react';
+import '../styles/select.css';
 
 const ShiftManagement = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUser, setCurrentUser] = useState('מפקד');
-  const [searchQuery, setSearchQuery] = useState('');
   
   const NOT_ASSIGNED = 'NOT_ASSIGNED';
   
@@ -40,17 +40,6 @@ const ShiftManagement = () => {
     'שלומי כהן', 'דביר לרנר', 'דוד פאסי', 'חגי קאופמן', 'אלי סעדיה',
     'חיים פרידמן', 'שי שמואל', 'ברוך שיינדמן'
   ].sort((a, b) => a.localeCompare(b, 'he'));
-
-  const handleKeyPress = (e, setSearch) => {
-    const key = e.key;
-    if (/^[\u0590-\u05FF]$/.test(key)) { // Hebrew letters only
-      setSearch(key);
-    }
-  };
-
-  const filteredSoldiers = soldiers.filter(soldier => 
-    !searchQuery || soldier.startsWith(searchQuery)
-  );
 
   const [shifts, setShifts] = useState({
     'שג מערבי': {
@@ -121,35 +110,85 @@ const ShiftManagement = () => {
     });
   };
 
-  const EditableCell = ({ position, date, hours, assignments }) => (
-    <div className="space-y-2">
-      {Array.from({ length: shifts[position].peoplePerShift }).map((_, index) => (
-        <Select
-          key={index}
-          value={assignments[index] || NOT_ASSIGNED}
-          onValueChange={(value) => handleAssignmentChange(position, date, hours, index, value)}
-          onOpenChange={() => setSearchQuery('')}
-        >
-          <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder="בחר חייל" />
-          </SelectTrigger>
-          <SelectContent 
-            className="bg-white shadow-lg border-gray-200 max-h-[200px] overflow-y-auto"
-            onKeyDown={(e) => handleKeyPress(e, setSearchQuery)}
+  const EditableCell = ({ position, date, hours, assignments }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [highlightedIndex, setHighlightedIndex] = useState(0);
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlightedIndex(prev => Math.min(prev + 1, filteredSoldiers.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlightedIndex(prev => Math.max(0, prev - 1));
+      } else if (/^[\u0590-\u05FF]$/.test(e.key)) {
+        setSearchQuery(prev => prev + e.key);
+        setHighlightedIndex(0);
+      } else if (e.key === 'Backspace') {
+        setSearchQuery(prev => prev.slice(0, -1));
+      }
+    };
+
+    const filteredSoldiers = soldiers.filter(soldier => 
+      !searchQuery || soldier.startsWith(searchQuery)
+    );
+
+    useEffect(() => {
+      if (searchQuery) {
+        const timeoutId = setTimeout(() => {
+          setSearchQuery('');
+        }, 1500);
+        return () => clearTimeout(timeoutId);
+      }
+    }, [searchQuery]);
+
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: shifts[position].peoplePerShift }).map((_, index) => (
+          <Select
+            key={index}
+            value={assignments[index] || NOT_ASSIGNED}
+            onValueChange={(value) => {
+              handleAssignmentChange(position, date, hours, index, value);
+              setSearchQuery('');
+              setHighlightedIndex(0);
+            }}
           >
-            <SelectItem value={NOT_ASSIGNED} className="bg-white hover:bg-gray-100">
-              לא משובץ
-            </SelectItem>
-            {filteredSoldiers.map(soldier => (
-              <SelectItem key={soldier} value={soldier} className="bg-white hover:bg-gray-100">
-                {soldier}
+            <SelectTrigger className="w-full bg-white">
+              <SelectValue placeholder="בחר חייל" />
+            </SelectTrigger>
+            <SelectContent 
+              className="custom-select-content bg-white shadow-lg border-gray-200"
+              onKeyDown={handleKeyDown}
+            >
+              <SelectItem 
+                value={NOT_ASSIGNED}
+                className="select-item"
+                data-highlighted={highlightedIndex === -1}
+              >
+                לא משובץ
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ))}
-    </div>
-  );
+              {filteredSoldiers.map((soldier, idx) => (
+                <SelectItem 
+                  key={soldier} 
+                  value={soldier}
+                  className="select-item"
+                  data-highlighted={idx === highlightedIndex}
+                >
+                  {soldier}
+                  {searchQuery && soldier.startsWith(searchQuery) && (
+                    <span className="text-blue-500 mr-2">
+                      (מתאים ל-"{searchQuery}")
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 rtl">
@@ -164,9 +203,13 @@ const ShiftManagement = () => {
             <SelectTrigger className="w-48 bg-white">
               <SelectValue>{formatDate(selectedDate)}</SelectValue>
             </SelectTrigger>
-            <SelectContent className="bg-white shadow-lg border-gray-200 max-h-[200px] overflow-y-auto">
+            <SelectContent className="custom-select-content bg-white shadow-lg border-gray-200">
               {weekDates.map((date) => (
-                <SelectItem key={date.toISOString()} value={date.toISOString()} className="bg-white hover:bg-gray-100">
+                <SelectItem 
+                  key={date.toISOString()} 
+                  value={date.toISOString()} 
+                  className="select-item"
+                >
                   {formatDate(date)}
                 </SelectItem>
               ))}
