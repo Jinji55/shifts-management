@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -6,9 +6,26 @@ import { Badge } from './ui/badge';
 import { Edit2, Save } from 'lucide-react';
 import '../styles/select.css';
 
-const ShiftManagement = () => {
+interface Assignment {
+  [key: string]: string[];
+}
+
+interface ShiftData {
+  peoplePerShift: number;
+  shiftHours: string[];
+  assignments: {
+    [key: string]: Assignment;
+  };
+}
+
+interface Shifts {
+  [key: string]: ShiftData;
+}
+
+const ShiftManagement: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUser, setCurrentUser] = useState('מפקד');
+  const [searchQuery, setSearchQuery] = useState('');
   
   const NOT_ASSIGNED = 'NOT_ASSIGNED';
   
@@ -24,9 +41,9 @@ const ShiftManagement = () => {
     });
   });
 
-  const [selectedDate, setSelectedDate] = useState(weekDates[0]);
+  const [selectedDate, setSelectedDate] = useState<Date>(weekDates[0]);
 
-  const formatDate = (date) => {
+  const formatDate = (date: Date): string => {
     return date.toLocaleDateString('he-IL', { 
       weekday: 'long',
       day: 'numeric',
@@ -41,7 +58,7 @@ const ShiftManagement = () => {
     'חיים פרידמן', 'שי שמואל', 'ברוך שיינדמן'
   ].sort((a, b) => a.localeCompare(b, 'he'));
 
-  const [shifts, setShifts] = useState({
+  const [shifts, setShifts] = useState<Shifts>({
     'שג מערבי': {
       peoplePerShift: 1,
       shiftHours: ['08:00-12:00', '12:00-16:00', '16:00-20:00', '20:00-00:00', '00:00-04:00', '04:00-08:00'],
@@ -100,7 +117,7 @@ const ShiftManagement = () => {
     }
   });
 
-  const handleAssignmentChange = (position, date, hours, soldierIndex, newSoldier) => {
+  const handleAssignmentChange = (position: string, date: string, hours: string, soldierIndex: number, newSoldier: string) => {
     setShifts(prev => {
       const newShifts = { ...prev };
       const assignments = [...newShifts[position].assignments[date][hours]];
@@ -110,11 +127,18 @@ const ShiftManagement = () => {
     });
   };
 
-  const EditableCell = ({ position, date, hours, assignments }) => {
-    const [searchQuery, setSearchQuery] = useState('');
+  interface EditableCellProps {
+    position: string;
+    date: string;
+    hours: string;
+    assignments: string[];
+  }
+
+  const EditableCell: React.FC<EditableCellProps> = ({ position, date, hours, assignments }) => {
+    const [localSearchQuery, setLocalSearchQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(0);
-    
-    const handleKeyDown = (e) => {
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setHighlightedIndex(prev => Math.min(prev + 1, filteredSoldiers.length - 1));
@@ -122,25 +146,25 @@ const ShiftManagement = () => {
         e.preventDefault();
         setHighlightedIndex(prev => Math.max(0, prev - 1));
       } else if (/^[\u0590-\u05FF]$/.test(e.key)) {
-        setSearchQuery(prev => prev + e.key);
+        setLocalSearchQuery(prev => prev + e.key);
         setHighlightedIndex(0);
       } else if (e.key === 'Backspace') {
-        setSearchQuery(prev => prev.slice(0, -1));
+        setLocalSearchQuery(prev => prev.slice(0, -1));
       }
     };
 
     const filteredSoldiers = soldiers.filter(soldier => 
-      !searchQuery || soldier.startsWith(searchQuery)
+      !localSearchQuery || soldier.startsWith(localSearchQuery)
     );
 
     useEffect(() => {
-      if (searchQuery) {
+      if (localSearchQuery) {
         const timeoutId = setTimeout(() => {
-          setSearchQuery('');
+          setLocalSearchQuery('');
         }, 1500);
         return () => clearTimeout(timeoutId);
       }
-    }, [searchQuery]);
+    }, [localSearchQuery]);
 
     return (
       <div className="space-y-2">
@@ -150,7 +174,7 @@ const ShiftManagement = () => {
             value={assignments[index] || NOT_ASSIGNED}
             onValueChange={(value) => {
               handleAssignmentChange(position, date, hours, index, value);
-              setSearchQuery('');
+              setLocalSearchQuery('');
               setHighlightedIndex(0);
             }}
           >
@@ -176,9 +200,9 @@ const ShiftManagement = () => {
                   data-highlighted={idx === highlightedIndex}
                 >
                   {soldier}
-                  {searchQuery && soldier.startsWith(searchQuery) && (
+                  {localSearchQuery && soldier.startsWith(localSearchQuery) && (
                     <span className="text-blue-500 mr-2">
-                      (מתאים ל-"{searchQuery}")
+                      (מתאים ל-"{localSearchQuery}")
                     </span>
                   )}
                 </SelectItem>
