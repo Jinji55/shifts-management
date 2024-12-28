@@ -26,7 +26,7 @@ const ShiftManagement = () => {
     'חיים פרידמן', 'שי שמואל', 'ברוך שיינדמן'
   ].sort((a, b) => a.localeCompare(b, 'he'));
 
-  const [shifts] = useState({
+  const [shifts, setShifts] = useState({
     'שג מערבי': {
       peoplePerShift: 1,
       shiftHours: ['08:00-12:00', '12:00-16:00', '16:00-20:00', '20:00-00:00', '00:00-04:00', '04:00-08:00'],
@@ -84,6 +84,16 @@ const ShiftManagement = () => {
       }), {})
     }
   });
+
+  const handleAssignmentChange = (position, hours, soldierIndex, newSoldier) => {
+    setShifts(prev => {
+      const newShifts = { ...prev };
+      const assignments = [...newShifts[position].assignments[selectedDate.toISOString()][hours]];
+      assignments[soldierIndex] = newSoldier;
+      newShifts[position].assignments[selectedDate.toISOString()][hours] = assignments;
+      return newShifts;
+    });
+  };
 
   const formatDate = (date) => {
     return date.toLocaleDateString('he-IL', { 
@@ -143,17 +153,23 @@ const ShiftManagement = () => {
                     <td className="p-2 border">{hours}</td>
                     <td className="p-2 border">
                       {isEditMode ? (
-                        <select 
-                          value={data.assignments[selectedDate.toISOString()][hours][0] || NOT_ASSIGNED}
-                          className="w-full p-1 border rounded"
-                        >
-                          <option value={NOT_ASSIGNED}>לא משובץ</option>
-                          {soldiers.map(soldier => (
-                            <option key={soldier} value={soldier}>
-                              {soldier}
-                            </option>
+                        <div className="space-y-1">
+                          {data.assignments[selectedDate.toISOString()][hours].map((soldier, index) => (
+                            <select 
+                              key={index}
+                              value={soldier}
+                              onChange={(e) => handleAssignmentChange(position, hours, index, e.target.value)}
+                              className="w-full p-1 border rounded"
+                            >
+                              <option value={NOT_ASSIGNED}>לא משובץ</option>
+                              {soldiers.map(soldier => (
+                                <option key={soldier} value={soldier}>
+                                  {soldier}
+                                </option>
+                              ))}
+                            </select>
                           ))}
-                        </select>
+                        </div>
                       ) : (
                         data.assignments[selectedDate.toISOString()][hours].map((soldier, i) => (
                           <div 
