@@ -1,14 +1,12 @@
-import React from 'react';
-import ShiftManagement from '../components/ShiftManagement';
+import ShiftsTable from '../components/ShiftsTable';
 
-const HomePage = () => {
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <main className="container mx-auto py-8">
-        <ShiftManagement />
-      </main>
-    </div>
+    <main className="min-h-screen p-8 bg-gray-50">
+      <div className="container mx-auto">
+        <h1 className="text-3xl font-bold mb-8 text-center">מערכת ניהול משמרות</h1>
+        <ShiftsTable />
+      </div>
+    </main>
   );
-};
-
-export default HomePage;
+}
