@@ -1,4 +1,4 @@
-import { readSheetData } from '../../config/sheets';
+import { readSheetData } from '../../config/sheets';  // שים לב לנתיב - שני ../
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -6,8 +6,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // נקרא את הנתונים מהגיליון - נשתמש בטווח A1:L15 כדוגמה
-    // תצטרך להתאים את הטווח בהתאם למבנה הגיליון שלך
     const data = await readSheetData('A1:L15');
     res.status(200).json(data);
   } catch (error) {
