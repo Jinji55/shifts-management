@@ -1,17 +1,19 @@
 import { google } from 'googleapis';
 
-// השם של הגיליון שאליו נתחבר
 export const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
 
-// הרשאות נדרשות
 export const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
   'https://www.googleapis.com/auth/drive.file',
 ];
 
-// פונקציה ליצירת לקוח מאומת
 export async function getAuthenticatedClient() {
   try {
+    // הדפס את משתני הסביבה לבדיקה (נמחק אחר כך)
+    console.log('Client Email:', process.env.GOOGLE_CLIENT_EMAIL);
+    console.log('Project ID:', process.env.GOOGLE_PROJECT_ID);
+    console.log('Spreadsheet ID:', process.env.GOOGLE_SPREADSHEET_ID);
+    
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
@@ -24,12 +26,11 @@ export async function getAuthenticatedClient() {
     const client = await auth.getClient();
     return google.sheets({ version: 'v4', auth: client });
   } catch (error) {
-    console.error('Error authenticating with Google:', error);
+    console.error('Authentication error details:', error);
     throw error;
   }
 }
 
-// פונקציה לקריאת נתונים מהגיליון
 export async function readSheetData(range) {
   const sheets = await getAuthenticatedClient();
   
