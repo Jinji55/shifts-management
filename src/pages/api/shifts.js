@@ -1,4 +1,4 @@
-import { readSheetData } from '../../../../config/sheets';
+import { readSheetData } from '../../config/sheets';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
