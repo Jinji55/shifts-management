@@ -4,7 +4,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
+} from "./ui/card";  // שים לב לנתיב - ./ui/card
 
 const ShiftsTable = () => {
   const [shifts, setShifts] = useState(null);
